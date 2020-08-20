@@ -40,7 +40,48 @@ class UI {
         }
     }
 }
-// Event lestiners
+// Class for Handling Local storage
+class Storage {
+    // Gets books from local storage
+    static getBooks() {
+            let books;
+            if (JSON.parse(localStorage.getItem('books'))) {
+                console.log('in');
+
+                books = JSON.parse(localStorage.getItem('books'));
+            } else {
+                books = [];
+            }
+            return books;
+        }
+        // stores book to local storage
+    static store(book) {
+            let books = Storage.getBooks();
+            books.push(book);
+            localStorage.setItem('books', JSON.stringify(books));
+        }
+        // Display books on Docment load
+    static displayBook() {
+            const books = Storage.getBooks();
+            const ui = new UI();
+            books.forEach(function(book) {
+                ui.addBook(book);
+            });
+        }
+        // Delete book from local storage by isbn
+    static deleteBook(isbn) {
+        let books = Storage.getBooks();
+        books.forEach(function(book, index) {
+            if (book.isbn == isbn) {
+                books.splice(index, index + 1);
+            }
+        })
+        localStorage.setItem('books', JSON.stringify(books));
+    }
+}
+// ON docment load event lestiner
+document.addEventListener('DOMContentLoaded', Storage.displayBook);
+// Book form Event lestiner
 document.getElementById('book-form').addEventListener('submit', function(e) {
     // Declare variables
     const title = document.getElementById('title').value,
@@ -54,6 +95,7 @@ document.getElementById('book-form').addEventListener('submit', function(e) {
     } else {
         // Add book
         ui.addBook(book);
+        Storage.store(book);
         ui.showAlert('Book Added!', 'success')
             // Clear inpt fields
         ui.clearFields();
@@ -64,7 +106,11 @@ document.getElementById('book-form').addEventListener('submit', function(e) {
 // Delete event listener
 document.getElementById('book-list').addEventListener('click', function(e) {
     const ui = new UI();
+    // Delete from UI
     ui.deleteBook(e.target);
+    // Delete from Local Storage by isbn
+    Storage.deleteBook(e.target.parentElement.previousSibling.previousSibling.textContent);
+    // Show success UI alert
     ui.showAlert('Deleted successfully!', 'success');
     e.preventDefault();
 })
